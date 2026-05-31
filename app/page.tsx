@@ -1,4 +1,4 @@
-import TakeUpOrderModal from "../components/TakeUpOrderModal";
+import TakeUpOrderModal from "@/components/TakeUpOrderModal";
 
 export default function Home() {
   return (
