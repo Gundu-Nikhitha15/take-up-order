@@ -1,4 +1,5 @@
 "use client";
+import { supabase } from "@/lib/supabase";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 
@@ -787,18 +788,58 @@ function OrderModal({ open, onClose, prefilledServices }) {
     setErrors((er) => ({ ...er, [field]: false }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async() => {
     const required = ["name", "email", "phone", "address", "service"];
     const newErrors = {};
     required.forEach((f) => { if (!form[f].trim()) newErrors[f] = true; });
     if (Object.keys(newErrors).length) { setErrors(newErrors); return; }
-    setLoading(true);
-    setTimeout(() => {
-      console.log("[Resolute Title] New Order Submission:", { ...form, submittedAt: new Date().toISOString() });
-      setLoading(false); setSuccess(true);
-      setTimeout(onClose, 2800);
-    }, 900);
-  };
+   setLoading(true);
+
+try {
+  const { error } = await supabase
+    .from("Orders")
+    .insert([
+      {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        address: form.address,
+        city: form.city,
+        state: form.state,
+        zip: form.zip,
+        service: form.service,
+        notes: form.notes,
+      },
+    ]);
+
+  if (error) throw error;
+
+  // ✅ SUCCESS UI
+  setSuccess(true);
+
+  // 📩 SEND EMAIL
+  await fetch("/api/send-email", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: form.email,
+      name: form.name,
+      service: form.service,
+    }),
+  });
+
+  setTimeout(onClose, 2800);
+} catch (err) {
+  console.log("FULL ERROR OBJECT:", err);
+  console.log("ERROR MESSAGE:", err?.message);
+  console.log("STRINGIFIED:", JSON.stringify(err, null, 2));
+
+  alert(err?.message || "Failed to save order");
+} finally {
+  setLoading(false);
+}}
 
   const fi = (n) => stagger(n, 0.055);
   const serviceTags = prefilledServices && prefilledServices.length > 0 ? prefilledServices : [];
