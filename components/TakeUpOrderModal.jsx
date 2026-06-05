@@ -797,7 +797,7 @@ function OrderModal({ open, onClose, prefilledServices }) {
 
 try {
   const { error } = await supabase
-    .from("Orders")
+    .from("orders")
     .insert([
       {
         name: form.name,
