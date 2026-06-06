@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     fetchOrders();
@@ -35,10 +36,28 @@ export default function OrdersPage() {
     border: "1px solid #ddd",
     padding: "10px",
   };
+  const filteredOrders = orders.filter(
+  (order) =>
+    order.name?.toLowerCase().includes(search.toLowerCase()) ||
+    order.email?.toLowerCase().includes(search.toLowerCase())
+);
 
   return (
     <div style={{ padding: "20px" }}>
       <h1>All Orders</h1>
+      <input
+  type="text"
+  placeholder="Search by Name or Email"
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  style={{
+    padding: "10px",
+    width: "300px",
+    marginBottom: "20px",
+    border: "1px solid #ccc",
+    borderRadius: "5px",
+  }}
+/>
 
       <div style={{ overflowX: "auto" }}>
         <table
@@ -59,12 +78,13 @@ export default function OrdersPage() {
               <th style={thStyle}>State</th>
               <th style={thStyle}>ZIP</th>
               <th style={thStyle}>Notes</th>
+              <th style={thStyle}>Created Date</th>
             </tr>
           </thead>
 
           <tbody>
-            {orders.length > 0 ? (
-              orders.map((order) => (
+            {filteredOrders.length > 0 ? (
+             filteredOrders.map((order) =>  (
                 <tr key={order.id}>
                   <td style={tdStyle}>{order.name}</td>
                   <td style={tdStyle}>{order.email}</td>
@@ -75,11 +95,17 @@ export default function OrdersPage() {
                   <td style={tdStyle}>{order.state}</td>
                   <td style={tdStyle}>{order.zip}</td>
                   <td style={tdStyle}>{order.notes}</td>
+                  <td style={tdStyle}>
+  {order.created_at
+    ? new Date(order.created_at).toLocaleString()
+    : "N/A"}
+</td>
+                 
                 </tr>
               ))
             ) : (
               <tr>
-                <td style={tdStyle} colSpan="9">
+                <td style={tdStyle} colSpan="10">
                   No orders found
                 </td>
               </tr>
